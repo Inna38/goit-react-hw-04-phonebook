@@ -1,116 +1,65 @@
-import {React, useState} from 'react';
+import { React, useState, useEffect, useRef } from 'react';
 import { nanoid } from 'nanoid';
-import { Component } from 'react';
 
 import { ContactForm } from './ContactForm/ContactForm';
 import { Filter } from './Filter/Filter';
 import { ContactList } from './ContactList/ContactList';
 
-// export class App extends Component {
-//   state = {
-//     contacts: [],
-//     filter: '',
-//   };
-
-//   handleContacts = user => {
-//     const userContact = this.state.contacts.find(
-//       contact => contact.name === user.name
-//     );
-//     if (userContact) {
-//       alert(`${user.name} is already in contacts.`);
-//       return;
-//     }
-//     this.setState(prev => ({
-//       contacts: [...prev.contacts, { ...user, id: nanoid() }],
-//     }));
-//   };
-
-//   handleFilter = e => {
-//       this.setState({
-//       filter: e.target.value,
-//     });
-//   };
-
-//   deleteContact = id => {
-//     this.setState(prev => ({
-//       contacts: prev.contacts.filter(contact => contact.id !== id),
-//     }));
-//   };
-
-//   render() {
-//     const filterContact = this.state.contacts.filter(contact =>
-//       contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
-//     );
-
-//     return (
-//       <div>
-//         <h1>Phonebook</h1>
-//         <ContactForm onContacts={this.handleContacts} />
-
-//         <h2>Contacts</h2>
-//         <Filter onFilter={this.handleFilter} />
-      
-//         <ContactList
-//           contacts={filterContact}
-//           deleteContact={this.deleteContact}
-//         />
-//       </div>
-//     );
-//   }
-// }
-
+const LOCAL_KEY = 'contacts';
 
 export function App() {
-  const [contacts, setContacts] = useState([])
-  const [filter, setFilter] = useState("")
-  // state = {
-  //   contacts: [],
-  //   filter: '',
-  // };
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
+  const firstRender = useRef(true);
 
-  handleContacts = user => {
-    const userContact = this.state.contacts.find(
-      contact => contact.name === user.name
-    );
+  useEffect(() => {
+    if (firstRender.current) {
+      if (localStorage.getItem(LOCAL_KEY) !== null) {
+        setContacts(JSON.parse(localStorage.getItem(LOCAL_KEY)));
+      }
+      firstRender.current = false;
+
+      return;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(contacts));
+  }, [contacts]);
+
+
+  
+  const handleContacts = user => {
+    const userContact = contacts.find(contact => contact.name === user.name);
     if (userContact) {
       alert(`${user.name} is already in contacts.`);
       return;
     }
-    this.setState(prev => ({
-      contacts: [...prev.contacts, { ...user, id: nanoid() }],
-    }));
+
+    setContacts(prev => [...prev, { ...user, id: nanoid() }]);
   };
 
-  handleFilter = e => {
-      this.setState({
-      filter: e.target.value,
-    });
+  const handleFilter = e => {
+    setFilter(e.target.value);
   };
 
-  deleteContact = id => {
-    this.setState(prev => ({
-      contacts: prev.contacts.filter(contact => contact.id !== id),
-    }));
+  const deleteContact = id => {
+    setContacts(contacts.filter(el => el.id !== id));
   };
 
-  render() {
-    const filterContact = this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(this.state.filter.toLowerCase())
-    );
+  const filterContact = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
 
-    return (
-      <div>
-        <h1>Phonebook</h1>
-        <ContactForm onContacts={this.handleContacts} />
+  return (
+    <div>
+      <h1>Phonebook</h1>
+      <ContactForm onContacts={handleContacts} />
 
-        <h2>Contacts</h2>
-        <Filter onFilter={this.handleFilter} />
-      
-        <ContactList
-          contacts={filterContact}
-          deleteContact={this.deleteContact}
-        />
-      </div>
-    );
-  }
+      <h2>Contacts</h2>
+      <Filter onFilter={handleFilter} />
+
+      <ContactList contacts={filterContact} deleteContact={deleteContact} />
+    </div>
+  );
 }
