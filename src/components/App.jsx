@@ -21,7 +21,7 @@ export function App() {
 
       return;
     }
-  });
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(contacts));
